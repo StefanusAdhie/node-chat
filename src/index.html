@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chat</title>
+
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+	<script type="text/javascript">
+		const socket = io('localhost:3000')
+
+		socket.on('connect', () => {
+			console.log('connected', socket.id)
+
+			/* register */
+			_register_users = () => {
+				const register_users = {
+					email: document.getElementById('email').value,
+					phone: document.getElementById('phone').value,
+					password: document.getElementById('password').value
+				}
+
+				socket.emit('register_users', register_users)
+			}
+
+			socket.on('register_users', (res) => {
+				console.log(res)
+			})
+			/**/
+
+
+			/* login */
+			_login = () => {
+				const login = {
+					userid: document.getElementById('userid').value,
+					password: document.getElementById('password_login').value
+				}
+
+				socket.emit('login', login)
+			}
+
+			socket.on('login', (res) => {
+				console.log(res)
+			})
+			/**/
+
+
+			/* update */
+			_update_users = () => {
+				const update_users = {
+					email: document.getElementById('email').value,
+					phone: document.getElementById('phone').value,
+					password: document.getElementById('password').value
+				}
+
+				socket.emit('update_users', update_users)
+			}
+
+			socket.on('update_users', (res) => {
+				console.log(res)
+			})
+			/**/
+
+
+			/* send message */
+			socket.on('send_message', (res) => {
+				console.log(res)
+			})
+
+			_send = (message) => {
+				socket.emit('send_message', message)
+			}
+			/**/
+
+
+			/* get message */
+			socket.on('get_message', (res) => {
+				console.log(res)
+			})
+			/**/
+		})
+	</script>
+</head>
+<body>
+	<div>
+		Chat Application
+	</div>
+
+	<div>
+		<!-- register -->
+		<div>
+			<input id="email" type="email" name="email">
+			<input id="phone" type="phone" name="phone">
+			<input id="password" type="password" name="password">
+
+			<button onclick='_register_users()'> Register </button>
+		</div>
+
+		<!-- login -->
+		<div>
+			<input id="userid" type="userid" name="userid">
+			<input id="password_login" type="password" name="password">
+			
+			<button onclick='_login()'> Login </button>
+		</div>
+
+		<button onclick='_update_users()'> Update </button>
+
+		<input id="message" type="message" name="message">
+
+		<button onclick="_send(document.getElementById('message').value)"> send </button>
+	</div>
+</body>
+</html>
