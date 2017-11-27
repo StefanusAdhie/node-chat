@@ -1,19 +1,38 @@
 const Joi = require('joi')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
 const Users = require('../schema/users')
+const modules = require('.')
 
 
 this._cekPassword = (value, db, callback) => {
 	for(var i in db) {
 		if(db[i].email == value.userid || db[i].phone == value.userid) {
-			if(value.password == db[i].password) {
-				/* user found */
-				return callback(db[i])
-			}
-			/* wrong password */
-			return console.log('wrong password')
+			bcrypt.compare(value.password, db[i].password, function(err, res) {
+				if(err) {
+					return callback(modules.response(400, 'wrong user or password'))
+				}
+
+				if(res) {
+					const data = {
+						_id: db[i]._id,
+						email: db[i].email,
+						phone: db[i].phone
+					}
+
+					jwt.sign(data, 'asdf123*', function(err, token) {
+						if(err) {
+							return callback(modules.response(400, 'wrong user or password'))
+						}
+
+						data['token'] = token
+						return callback(modules.response(200, 'user found', data))
+					})
+				} else {
+					return callback(modules.response(400, 'wrong user or password'))
+				}
+			})
 		}
-		/* user not found */
-		return console.log('user not found')
 	}
 }
 
@@ -29,53 +48,70 @@ this.response = (code, message, data) => {
 }
 
 const login = (data, callback) => {
-	Joi.validate(data, Users.schemaLogin, (err, value) => {
-		if(err) {
-			/* failed joi validation */
-			return callback(err)
-		}
+	modules.check_token(data, (token) => {
+		if(token === false) {
+			Joi.validate(data.data, Users.schemaLogin, (err, value) => {
+				if(err) {
+					/* failed joi validation */
+					// return callback(err)
+					return callback(modules.response(400, 'wrong user or password'))
+				}
 
-		/*
-		*
-		find email
-		*
-		*/
-		Users.schema.find({email: value.userid}, (errEmail, dbEmail) => {
-			if(errEmail) {
-				/* error find email in db */
-				return callback(errEmail)
-			}
-
-			if(dbEmail.length == 0) {
 				/*
 				*
-				find phone number
+				find email
 				*
 				*/
-				Users.schema.find({phone: value.userid}, (errPhone, dbPhone) => {
-					if(errPhone) {
-						/* error find phone number in db */
-						return callback(errPhone)
+				Users.schema.find({email: value.userid}, (errEmail, dbEmail) => {
+					if(errEmail) {
+						/* error find email in db */
+						// return callback(errEmail)
+						return callback(modules.response(400, 'wrong user or password'))
 					}
 
-					if(dbPhone.length == 0) {
-						return callback(this.response(400, 'user not found'))
-					}
+					if(dbEmail.length == 0) {
+						/*
+						*
+						find phone number
+						*
+						*/
+						modules.phoneNumber(value.userid, (res) => {
+							if(res) {
+								Users.schema.find({phone: value.userid}, (errPhone, dbPhone) => {
+									if(errPhone) {
+										/* error find phone number in db */
+										// return callback(errPhone)
+										return callback(modules.response(400, 'wrong user or password'))
+									}
 
-					/* cek password */
-					this._cekPassword(value, dbPhone, (res) => {
-						return callback(res)
-					})
+									if(dbPhone.length == 0) {
+										return callback(modules.response(400, 'wrong user or password'))
+									} else {
+										/* cek password */
+										this._cekPassword(value, dbPhone, (res) => {
+											return callback(res)
+										})
+									}
+								})	
+							} else {
+								/* error format phone */
+								return callback(modules.response(400, 'wrong user or password'))
+							}
+						})
+						/**/
+					} else {
+						/* cek password */
+						this._cekPassword(value, dbEmail, (res) => {
+							return callback(res)
+						})
+					}
 				})
 				/**/
-			}
-
-			/* cek password */
-			this._cekPassword(value, dbEmail, (res) => {
-				return callback(res)
 			})
-		})
-		/**/
+		} else {
+			/* user have token */
+			return callback(modules.response(400, 'user not found'))
+		}
 	})
 }
 

@@ -6,17 +6,48 @@
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 
 	<script type="text/javascript">
-		const socket = io('localhost:3000')
+		const socket = io('localhost:3030')
+		token = JSON.parse(localStorage.getItem('@token'))
 
 		socket.on('connect', () => {
 			console.log('connected', socket.id)
+			if(token !== null) {
+				socket.emit('userid', { userid: token._id, clientid: socket.id })
+			} else {
+				token = {}
+				token['token'] = false
+			}
+
+
+			/* check user*/
+			_check_users = () => {
+				console.log(token)
+				const check_users = {
+					headers: {
+						token: token.token
+					},
+					data: document.getElementById('users').value
+				}
+
+				socket.emit('check_users', check_users)
+			}
+
+			socket.on('check_users', (res) => {
+				console.log(res)
+			})
+			/**/
 
 			/* register */
 			_register_users = () => {
 				const register_users = {
-					email: document.getElementById('email').value,
-					phone: document.getElementById('phone').value,
-					password: document.getElementById('password').value
+					headers: {
+						token: token.token
+					},
+					data: {
+						email: document.getElementById('email').value,
+						phone: document.getElementById('phone').value,
+						password: document.getElementById('password').value
+					}
 				}
 
 				socket.emit('register_users', register_users)
@@ -31,8 +62,13 @@
 			/* login */
 			_login = () => {
 				const login = {
-					userid: document.getElementById('userid').value,
-					password: document.getElementById('password_login').value
+					headers: {
+						token: token.token
+					},
+					data: {
+						userid: document.getElementById('userid').value,
+						password: document.getElementById('password_login').value
+					}
 				}
 
 				socket.emit('login', login)
@@ -40,6 +76,11 @@
 
 			socket.on('login', (res) => {
 				console.log(res)
+				if(res.headers.status === 200) {
+					localStorage.setItem('@token', JSON.stringify(res.data))
+
+					socket.emit('userid', { userid: res.data._id, clientid: socket.id })
+				}
 			})
 			/**/
 
@@ -66,8 +107,17 @@
 				console.log(res)
 			})
 
-			_send = (message) => {
-				socket.emit('send_message', message)
+			_send = () => {
+				const send = {
+					headers: {
+						token: token.token
+					},
+					data: {
+						to: document.getElementById('to').value,
+						message: document.getElementById('message').value
+					}
+				}
+				socket.emit('send_message', send)
 			}
 			/**/
 
@@ -86,6 +136,13 @@
 	</div>
 
 	<div>
+		<!-- check user -->
+		<div>
+			<input id="users" type="users" name="users">
+
+			<button onclick="_check_users()"> Next </button>
+		</div>
+
 		<!-- register -->
 		<div>
 			<input id="email" type="email" name="email">
@@ -105,9 +162,12 @@
 
 		<button onclick='_update_users()'> Update </button>
 
-		<input id="message" type="message" name="message">
+		<div>
+			<input id="to" type="to" name="to">
+			<input id="message" type="message" name="message">
 
-		<button onclick="_send(document.getElementById('message').value)"> send </button>
+			<button onclick="_send()"> send </button>
+		</div>
 	</div>
 </body>
 </html>
