@@ -10,6 +10,6 @@ app.get('/', (req, res) => {
 require('./src/routes').routes(io)
 
 
-http.listen(3000, '0.0.0.0', () => {
-	console.log('this server running on port 3000')
+http.listen(3030, '0.0.0.0', () => {
+	console.log('this server running on port', http.address().address, ':', http.address().port)
 })
