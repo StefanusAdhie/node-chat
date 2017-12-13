@@ -11,8 +11,8 @@ const _findPhone = (value, cb) => {
 					/* error find phone */
 					return cb(modules.response(400, 'user not found'))
 				}
-				
-				if(dbPhone === 0) {
+				console.log('=====', dbPhone)
+				if(dbPhone.length === 0) {
 					return cb(modules.response(400, 'user not found'))
 				} else {
 					/* found phone number */
@@ -45,17 +45,19 @@ const _findEmail = (value, cb) => {
 }
 
 const check_users = (data, callback) => {
-	modules.check_token(data.headers, (token) => {
-		if(token === false) {
-			/* find email */
-			_findEmail(data.data, (cb) => {
-				return callback(cb)
-			})
-		} else {
-			/* user have token */
-			return callback(modules.response(400, 'user not found'))
-		}
-	})
+	try {
+		modules.check_token(data.headers, (token) => {
+			if(token === false) {
+				/* find email */
+				_findEmail(data.data, (cb) => {
+					return callback(cb)
+				})
+			} else {
+				/* user have token */
+				return callback(modules.response(400, 'user not found'))
+			}
+		})
+	} catch(err) {}
 }
 
 module.exports = check_users

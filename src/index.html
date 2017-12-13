@@ -12,7 +12,7 @@
 		socket.on('connect', () => {
 			console.log('connected', socket.id)
 			if(token !== null) {
-				socket.emit('userid', { userid: token._id, clientid: socket.id })
+				socket.emit('clientid', { userid: token._id, clientid: socket.id })
 			} else {
 				token = {}
 				token['token'] = false
@@ -79,7 +79,7 @@
 				if(res.headers.status === 200) {
 					localStorage.setItem('@token', JSON.stringify(res.data))
 
-					socket.emit('userid', { userid: res.data._id, clientid: socket.id })
+					socket.emit('clientid', { userid: res.data._id, clientid: socket.id })
 				}
 			})
 			/**/

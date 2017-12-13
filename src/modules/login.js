@@ -48,7 +48,7 @@ this.response = (code, message, data) => {
 }
 
 const login = (data, callback) => {
-	modules.check_token(data, (token) => {
+	modules.check_token(data.headers, (token) => {
 		if(token === false) {
 			Joi.validate(data.data, Users.schemaLogin, (err, value) => {
 				if(err) {
