@@ -5,6 +5,7 @@ exports.check_users = require('./check_users')
 exports.register_users = require('./register_users')
 exports.login = require('./login')
 exports.update_users = require('./update_users')
+exports.message = require('./message')
 
 exports.response = (code, message, data) => {
 	const value = {

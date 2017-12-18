@@ -23,6 +23,8 @@ exports.routes = (io) => {
 					socket.emit('clientid', true)
 					// clientid.push(res)
 				}
+
+				socket.emit('clientid', false)
 			})
 		})
 
@@ -82,11 +84,11 @@ exports.routes = (io) => {
 
 		/* send message */
 		socket.on('send_message', (res) => {
-			modules.check_token(res.headers, (token) => {
+			/* modules.check_token(res.headers, (token) => {
 				console.log('=====', token, res)
 				if(token) {
-					socket.emit('send_message', res.data.message)	
-					
+					socket.emit('send_message', modules.response(200, 'success send message')
+
 					console.log(clientid)
 					for(var i in clientid) {
 						if(clientid[i].userid === res.data.to) {
@@ -97,6 +99,15 @@ exports.routes = (io) => {
 							socket.broadcast.to(clientid[i].clientid).emit('get_message', modules.response(200, 'get message', get_message))
 						}
 					}
+				}
+			}) */
+
+			modules.message(clientid, res, (value1, id, value2) => {
+				console.log('===== modules message =====', value1)
+				socket.emit('send_message', value1)
+				if(id) {
+					console.log('===== modules message =====', id, value2)
+					socket.broadcast.to(id).emit('get_message', value2)
 				}
 			})
 
