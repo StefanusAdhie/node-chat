@@ -5,7 +5,6 @@ const modules = require('.')
 
 const message = (clientid, data, callback) => {
 	modules.check_token(data.headers, (token) => {
-		console.log('=====', token, data)
 		if(token) {
 			/*
 			dataMessage: {
@@ -15,21 +14,22 @@ const message = (clientid, data, callback) => {
 			}
 			*/
 
-			console.log(clientid)
 			for(var i in clientid) {
 				if(clientid[i].userid === data.data.to) {
+					const _CLIENTID = clientid[i].clientid
+					
 					const get_message = {
 						from: token,
 						message: data.data.message
 					}
 
-					var dataMessage = {
+					const dataMessage = {
 						from: token,
 						to: data.data.to,
 						message: data.data.message,
 						create_at: new Date()
 					}
-					var message = new Message.schema(dataMessage)
+					const message = new Message.schema(dataMessage)
 
 					/*
 					*
@@ -44,7 +44,11 @@ const message = (clientid, data, callback) => {
 						}
 
 						// return callback(true)
-						return callback(modules.response(200, 'success send message'), clientid[i].clientid, modules.response(200, 'get message', get_message))
+						return callback(
+							modules.response(200, 'success send message'),
+							_CLIENTID,
+							modules.response(200, 'get message', get_message)
+						)
 					})
 					/**/
 				}

@@ -10,17 +10,36 @@ exports.routes = (io) => {
 		clientid.push({clientid: socket.id})
 
 		socket.on('clientid', (res) => {
-			console.log(clientid)
+			console.log('===== clientid =====', clientid)
 			modules.check_token(res.headers, (token) => {
 				if(token) {
 					for(var i in clientid) {
+						/*
+						*
+						remove old client id
+						*
+						*/
+						if(clientid.length > 1) {
+							if(clientid[i].userid === token) {
+								console.log(i)
+								clientid.splice(i, 1)
+							}
+						}
+						/**/
+
+						/*
+						*
+						add new client id
+						*
+						*/
 						if(clientid[i].clientid === res.data) {
-							socket.emit('clientid', true)
+							socket.emit('clientid', token)
 							return clientid[i]['userid'] = token
 						}
+						/**/
 					}
 					
-					socket.emit('clientid', true)
+					socket.emit('clientid', token)
 					// clientid.push(res)
 				}
 
@@ -34,6 +53,7 @@ exports.routes = (io) => {
 		*
 		*/
 		socket.on('check_users', (res) => {
+			console.log('check_users', res)
 			modules.check_users(res, (value) => {
 				console.log('===== modules check_users =====', value)
 				socket.emit('check_users', value)
@@ -84,12 +104,10 @@ exports.routes = (io) => {
 
 		/* send message */
 		socket.on('send_message', (res) => {
-			/* modules.check_token(res.headers, (token) => {
-				console.log('=====', token, res)
+			/*modules.check_token(res.headers, (token) => {
 				if(token) {
-					socket.emit('send_message', modules.response(200, 'success send message')
+					socket.emit('send_message', modules.response(200, 'success send message'))
 
-					console.log(clientid)
 					for(var i in clientid) {
 						if(clientid[i].userid === res.data.to) {
 							const get_message = {
@@ -100,7 +118,7 @@ exports.routes = (io) => {
 						}
 					}
 				}
-			}) */
+			})*/ 
 
 			modules.message(clientid, res, (value1, id, value2) => {
 				console.log('===== modules message =====', value1)
